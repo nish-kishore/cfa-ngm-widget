@@ -9,6 +9,52 @@ vaccination allocation for a disease interactively via a
 [streamlit](https://streamlit.io/) app using a next generation matrix
 approach.
 
+
+## Model Description
+
+This repo contains code to apply the next-generation method of Diekman et al. (1990) to calculate R0 for an SIR model with 4 risk groups and flexible inputs for varying vaccine allocation to the 4 groups.
+
+### Next generation matrix calculation
+
+The next-generation matrix approach (NGM) is described in `docs/ngm.md`.
+The documentation is best viewed off of GitHub, either by opening in VSCode and using the built in [markdown preview](https://code.visualstudio.com/Docs/languages/markdown#_markdown-preview) or by building with `mkdocs` using `mkdocs serve` (this requires installing `mkdocs`).
+
+### Model assumptions
+
+Vaccination is assumed to be all or nothing  -- each individual's immunity is determined by a coin flip with probability of being immune equal to the vaccine efficacy. In the NGM, each $N_i = N_i * (1 - VE)$.
+
+# Streamlit app
+
+Default parameters assume the following about transmission:
+
+| Group | Probability of onward, within group transmission | Probability of being infected from outside group | Probability of severe outcome in group |
+|----------|----------|----------|----------|
+| Core      | High     | High     | Low     |
+| Children  | Low      | Low      | High    |
+| Travelers | Low      | High     | Low     |
+| General   | Low      | Low      | Low     |
+
+Other Inputs to the widget:
+
+* Sizes of the groups, $N_i$
+* Vaccination efficacy (VE) and number of doses allocated to each group ($V_i$)
+* Within and between group reproduction numbers; the entries to the NGM, $R_{ij}$
+* Per-group probability of severe infection
+
+Outputs:
+
+* Effective reproductive number
+* Distribution of infections and severe infections
+
+### References
+
+Diekmann O, Heesterbeek JA, Metz JA. On the definition and the computation of the basic reproduction ratio R0 in models for infectious diseases in heterogeneous populations. J Math Biol. 1990;28(4):365-82. doi: 10.1007/BF00178324. PMID: 2117040.
+
+Diekmann O, Heesterbeek JA, Roberts MG. The construction of next-generation matrices for compartmental epidemic models. J R Soc Interface. 2010 Jun 6;7(47):873-85. doi: 10.1098/rsif.2009.0386. Epub 2009 Nov 5. PMID: 19892718; PMCID: PMC2871801.
+
+ van den Driessche P, Watmough J. Reproduction numbers and sub-threshold endemic equilibria for compartmental models of disease transmission. Math Biosci. 2002 Nov-Dec;180:29-48. doi: 10.1016/s0025-5564(02)00108-6. PMID: 12387915.
+
+
 ## Authors
 
 - Paige Miller <yub1@cdc.gov>
