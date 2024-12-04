@@ -28,15 +28,17 @@ def test_vax_beta():
     current = ngm.get_R(beta=beta, n=n, n_vax=n_vax, ve=ve)
     expected = np.array(
         [
-            [10.0 * .2 * .5, 0.1 * .8],
-            [0.1  * .2 * .5, 1.0 * .8],
+            [10.0 * .2 * .5, 0.1  * .2 * .5],
+            [0.1 * .8, 1.0 * .8],
         ]
     )
 
     assert_array_equal(current, expected)
+    assert ngm.dominant_eigen(current).value < 2.0013
 
 
 def test_simulate():
+    # Tests ngm against itself
     n = np.array([200, 200, 100, 500])
     n_vax = np.array([0, 0, 0, 0])
     beta = np.array([[3.0, 0.5, 3.0, 0.5],
@@ -48,21 +50,23 @@ def test_simulate():
     current = ngm.simulate(n=n, n_vax=n_vax, beta=beta, p_severe=p_severe, ve=ve)
 
     assert set(current.keys()) == {"Re", "R", "infections", "severe_infections"}
-    assert np.isclose(current["Re"], 0.9213240982914666)
+    assert np.isclose(current["Re"], 0.9213240982914677)
     assert_allclose(
         current["R"],
-        np.array([[0.6, 0.1, 0.3,  0.25],
-                  [0.1, 0.1, 0.05, 0.25],
-                  [0.6, 0.1, 0.05, 0.25],
-                  [0.1, 0.1, 0.05, 0.25]]),
+        np.array([
+            [0.6 , 0.1 , 0.6 , 0.1 ],
+            [0.1 , 0.1 , 0.1 , 0.1 ],
+            [0.3 , 0.05, 0.05, 0.05],
+            [0.25, 0.25, 0.25, 0.25]
+        ]),
     )
     assert_allclose(
-        current["infections"], np.array([0.43969484, 0.107228  , 0.34584916, 0.107228]),
+        current["infections"], np.array([0.44507246, 0.10853944, 0.17503951, 0.2713486]),
     )
 
     assert_allclose(
         current["severe_infections"],
-        np.array([0.00810203, 0.0059275 , 0.00637278, 0.00197583]),
+        np.array([0.00820112, 0.006, 0.00322536, 0.005]),
         rtol=1e-5
     )
 
@@ -78,3 +82,25 @@ def test_ensure_positive():
 
     with pytest.raises(RuntimeError, match="all positive"):
         ngm._ensure_positive_array(np.array([1, -1]))
+
+def test_kr():
+    r = ngm.get_R(
+        beta = np.array([[10, 0.1],[0.1, 1]]),
+        n = np.array([0.2, 0.8]),
+        n_vax = np.array([0.0, 0.0]),
+        ve = 1.0,
+    )
+
+    r_p_61 = np.array([[2, 0.02],[0.08, 0.8]])
+    assert np.isclose(r, r_p_61).all()
+
+    r0 = ngm.dominant_eigen(r).value
+
+    assert np.isclose(r0, 2.0013, atol=5e-5)
+
+def test_eigenvectors():
+    r = np.array([[3.1, 0.15, 1.7],[0.78, 1.5, 0.1],[0.32, 0.98, 1.1]])
+
+    brute_force = ngm.run_ngm(r, np.array([1, 0, 0]), 200)
+    brute_force = brute_force / brute_force.sum()
+    assert np.isclose(ngm.dominant_eigen(r).vector, brute_force).all()
