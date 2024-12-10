@@ -5,21 +5,19 @@ from typing import Any
 DominantEigen = namedtuple("DominantEigen", ["value", "vector"])
 
 
-def simulate(
-    R_novax: np.ndarray,
+def run_ngm(
+    M_novax: np.ndarray,
     n: np.ndarray,
     n_vax: np.ndarray,
-    p_severe: np.ndarray,
     ve: float,
 ) -> dict[str, Any]:
     """
     Calculate Re and distribution of infections
 
     Args:
-        R_novax: Next Generation Matrix in the absence of administering any vaccines
+        M_novax: Next Generation Matrix in the absence of administering any vaccines
         n (np.array): Population sizes for each group
         n_vax (np.array): Number of people vaccinated in each group
-        p_severe (np.array): Group-specific probability of severe infection
         ve (float): Vaccine efficacy
 
     Returns:
@@ -27,34 +25,50 @@ def simulate(
     """
     n_groups = len(n)
     assert len(n_vax) == n_groups
-    assert len(p_severe) == n_groups
-    assert R_novax.shape[0] == n_groups
-    assert R_novax.shape[1] == n_groups
+    assert M_novax.shape[0] == n_groups
+    assert M_novax.shape[1] == n_groups
     assert all(n >= n_vax), "Vaccinated cannot exceed population size"
 
     # eigen analysis
-    R_vax = reduce_R(R=R_novax, p_vax=n_vax / n, ve=ve)
-    eigen = dominant_eigen(R_vax, norm="L1")
+    M_vax = vaccinate_M(M=M_novax, p_vax=n_vax / n, ve=ve)
+    eigen = dominant_eigen(M_vax, norm="L1")
 
-    return {
-        "R": R_vax,
-        "Re": eigen.value,
-        "infections": eigen.vector,
-        "severe_infection_ratio": np.dot(eigen.vector, p_severe),
-    }
+    return {"M": M_vax, "Re": eigen.value, "infection_distribution": eigen.vector}
 
 
-def reduce_R(R: np.ndarray, p_vax: np.ndarray, ve: float) -> np.ndarray:
+def severity(eigenvalue: float, eigenvector: np.ndarray, p_severe: np.ndarray, G: int
+) -> np.ndarray:
+
+    """
+    Calculate severe infections after G generations
+
+    Args:
+        eigenvalue: eigenvalue, which is number of new infections caused by each infected (Re)
+        eigenvector (np.array): eigenvector, representing distribution of infections in each group
+        p_severe (np.array): Probability of severe outcome in each group
+        G (int): Number of generations to project number of severe infections
+
+    Returns:
+        np.ndarray: contains total number of severe infections from one infection over G generations
+    """
+    total_severe_infections = np.zeros_like(eigenvector)
+    for g in range(1, G + 1):
+        total_severe_infections += pow(eigenvalue, g) * eigenvector * p_severe
+
+    return total_severe_infections
+
+
+def vaccinate_M(M: np.ndarray, p_vax: np.ndarray, ve: float) -> np.ndarray:
     """Adjust a next generation matrix with vaccination"""
-    assert len(R.shape) == 2 and R.shape[0] == R.shape[1], "R must be square"
-    n_groups = R.shape[0]
+    assert len(M.shape) == 2 and M.shape[0] == M.shape[1], "M must be square"
+    n_groups = M.shape[0]
     assert len(p_vax) == n_groups, "Input dimensions must match"
     assert (0 <= p_vax).all() and (
         p_vax <= 1.0
     ).all(), "Vaccine coverage must be in [0, 1]"
     assert 0 <= ve <= 1.0
 
-    return (R.T * (1 - p_vax * ve)).T
+    return (M.T * (1 - p_vax * ve)).T
 
 
 def dominant_eigen(X: np.ndarray, norm: str = "L1") -> DominantEigen:
