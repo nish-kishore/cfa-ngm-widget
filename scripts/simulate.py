@@ -5,11 +5,6 @@ import polars.selectors as cs
 import griddler
 import griddler.griddle
 
-strategy_names = {"even": "even", "0": "core first", "1": "children first"}
-
-parameter_sets = griddler.griddle.read("scratch/config.yaml")
-
-
 def simulate_scenario(params, distributions_as_percents=False):
     assert sum(params["pop_props"]) == 1.0
 
@@ -64,6 +59,8 @@ def simulate_scenario(params, distributions_as_percents=False):
 
 
 if __name__ == "__main__":
+    parameter_sets = griddler.griddle.read("scripts/config.yaml")
+    strategy_names = {"even": "even", "0": "core first", "1": "children first"}
 
     results_all = griddler.run_squash(simulate_scenario, parameter_sets).with_columns(
         pl.col("vax_strategy").replace_strict(strategy_names)
