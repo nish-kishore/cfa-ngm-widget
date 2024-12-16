@@ -1,4 +1,3 @@
-# To-do: be very sure we know what rows vs columns mean
 import numpy as np
 import polars as pl
 import streamlit as st
@@ -29,7 +28,7 @@ def extract_vector(prefix: str, df: pl.DataFrame, index_name: str, sigdigs, grou
 def summarize_scenario(
         params,
         sigdigs,
-        group_display_names,
+        groups,
         display=["infections_", "deaths_per_prior_infection_", "deaths_after_G_generations_"],
         display_names=["Percent of infections", "Severe infections per prior infection", "Severe infections after G generations"]
     ):
@@ -53,7 +52,6 @@ def summarize_scenario(
             )
         )
     )
-
     summary_help = (
         "The summaries are:\n"
         "- Percent of infections: The percent among all infections which are in the given group.\n"
@@ -61,11 +59,13 @@ def summarize_scenario(
         "- Severe infections after G generations: Starting with one index infection, how many severe infections will there have been, cumulatively, in each group after G generations of infection? Note that the index infection is marginalized over the the distribution on infections from the table above.\n"
     )
     st.subheader("Summaries of Infections:")
-    res_table = pl.concat([
-                extract_vector(disp, result, disp_name, sigdigs) for disp,disp_name in zip(display, display_names)
-            ]).rename(group_display_names)
-
-    st.dataframe(res_table)
+    st.dataframe(
+        (
+            pl.concat([
+                extract_vector(disp, result, disp_name, sigdigs, groups = groups) for disp,disp_name in zip(display, display_names)
+            ])
+        )
+    )
     st.write(summary_help)
 
     ngm_help = "This is the Next Generation Matrix accounting for the specified administration of vaccines in this scenario."
@@ -124,7 +124,7 @@ def app():
 
     params_default = pl.DataFrame(
         {
-            "Group name": ["Core", "Children", "General"],
+            "Group name": ["Core", "Children", "Adults"],
             "Pop. size": np.array([0.05, 0.45, 0.5]) * int(1e7),
             "No. vaccines": [2.5e5, 2.5e5, 5e5],
             "Prob. severe": [0.02, 0.06, 0.02],
@@ -137,12 +137,6 @@ def app():
         st.subheader("Population Information", help="Edit entries in the following matrix to define the:\n - Group names\n - Numbers of people in each group\n - Number of vaccines allocated to each group\n - Probability that an infection will produce the severe outcome of interest (e.g. death) in each group")
         params = st.sidebar.data_editor(params_default)
 
-        # scripts.summarize() hard-codes these names and we want to make sure we display what the user has set
-        names_from_summary = ["core", "children", "adults"]
-        grp_rename_map = {
-            default : edited
-            for default,edited in zip(names_from_summary, params["Group name"])
-        }
 
         VE = st.slider("Vaccine Efficacy", 0.0, 1.0, value=0.74, step=0.01, help="Protection due to vaccination is assumed to be all or nothing with this efficacy.")
 
@@ -194,7 +188,7 @@ def app():
 
     # present results ------------------------------------------------------------
     for s in scenarios:
-        summarize_scenario(s, sigdigs, grp_rename_map)
+        summarize_scenario(s, sigdigs, groups=params["Group name"])
 
 
 if __name__ == "__main__":

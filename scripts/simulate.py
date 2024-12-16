@@ -36,50 +36,53 @@ def simulate_scenario(params, distributions_as_percents=False):
     fatalities_after_G_generations = ngm.severity(eigenvalue = Re, eigenvector = result["infection_distribution"],
                                                   p_severe = p_severe, G = params["G"])
 
+    infection_distribution_dict = {
+        f"infections_{group}": result["infection_distribution"][i] * mult
+        for i, group in enumerate(params["group_names"])
+    }
 
+    deaths_per_prior_infection_dict = {
+        f"deaths_per_prior_infection_{group}": fatalities_per_prior_infection[i]
+        for i, group in enumerate(params["group_names"])
+    }
 
+    deaths_after_G_generations_dict = {
+        f"deaths_after_G_generations_{group}": fatalities_after_G_generations[i]
+        for i, group in enumerate(params["group_names"])
+    }
+
+    # Combine all dictionaries into results_dict
     results_dict = {
-            "Re": Re,
-            "infections_core": result["infection_distribution"][0] * mult,
-            "infections_children": result["infection_distribution"][1] * mult,
-            "infections_adults": result["infection_distribution"][2] * mult,
-            "ifr": ifr,
-            "deaths_per_prior_infection": fatalities_per_prior_infection.sum(),
-            "deaths_per_prior_infection_core": fatalities_per_prior_infection[0],
-            "deaths_per_prior_infection_children": fatalities_per_prior_infection[1],
-            "deaths_per_prior_infection_adults": fatalities_per_prior_infection[2],
-            "deaths_after_G_generations": fatalities_after_G_generations.sum(),
-            "deaths_after_G_generations_core": fatalities_after_G_generations[0],
-            "deaths_after_G_generations_children": fatalities_after_G_generations[1],
-            "deaths_after_G_generations_adults": fatalities_after_G_generations[2],
-
-        }
-
+        "Re": Re,
+        "ifr": ifr,
+        "deaths_per_prior_infection": fatalities_per_prior_infection.sum(),
+        "deaths_after_G_generations": fatalities_after_G_generations.sum(),
+        **infection_distribution_dict,
+        **deaths_per_prior_infection_dict,
+        **deaths_after_G_generations_dict,
+    }
     return pl.DataFrame(results_dict)
 
 
 if __name__ == "__main__":
     parameter_sets = griddler.griddle.read("scripts/config.yaml")
-    strategy_names = {"even": "even", "0": "core first", "1": "children first"}
 
+    strategy_names = {"even": "even", "0": "core first", "1": "group 1 first", "2": "group 2 first", "0_1": "core and group 1 first"}
     results_all = griddler.run_squash(simulate_scenario, parameter_sets).with_columns(
         pl.col("vax_strategy").replace_strict(strategy_names)
     )
 
+    scen = results_all.select("scenario").row(0)[0]
+
+    cols_to_select = [
+        "n_vax_total",
+        "vax_strategy",
+        "Re",
+        "ifr"]
+
     results = (
         results_all.with_columns(cs.float().round(3))
-        .select(
-            [
-                "n_vax_total",
-                "vax_strategy",
-                "Re",
-                "ifr",
-                "deaths_per_prior_infection",
-                "deaths_per_prior_infection_core",
-                "deaths_per_prior_infection_children",
-                "deaths_per_prior_infection_adults",
-            ]
-        )
+        .select(cs.by_name(cols_to_select) | cs.starts_with("deaths_per_prior", "infections_"))
         .sort(["n_vax_total", "vax_strategy"])
     )
 
@@ -87,4 +90,4 @@ if __name__ == "__main__":
         print(results)
 
     # save results
-    results.write_csv("scratch/results.csv")
+    results.write_csv(f"scripts/results_{scen}.csv")
