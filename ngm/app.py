@@ -1,6 +1,7 @@
 import altair as alt
 import numpy as np
 import polars as pl
+import streamlit as st
 import streamlit.delta_generator
 
 import ngm
@@ -198,7 +199,9 @@ def summarize_scenario(
 
 
 def app():
-    import streamlit as st
+    st.info(
+        "This interactive application is a prototype designed for software testing and educational purposes."
+    )
 
     st.title("Vaccine Allocation Widget")
     st.write(

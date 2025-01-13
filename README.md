@@ -1,19 +1,20 @@
 # Next generation matrix widget
 
-⚠️ This is a work in progress
-
 ## Overview
 
 This repo contains code for investigating the potential efficacy of vaccination allocation for a disease interactively via a [streamlit](https://streamlit.io/) app using a next generation matrix approach.
 
 ## Getting started
 
-- Enable poetry with `poetry install`
-- To run the app: `make`, which calls `streamlit run ngm/widget.py`
+- Enable [poetry](https://python-poetry.org/) with `poetry install`
+- To run the app: `make`, which calls `streamlit run scripts/widget.py`
+- In a browser, visit: `http://localhost:8501/`
 
 ### Using containers
 
-The build and run process can also be executed using the `build_container` and `run_container` targets in the included [Makefile](Makefile).
+- Build and tag the image: `make build_container`
+- Run the container: `make run_container`
+- Note the port 8501 is hard-coded in the `Dockerfile`
 
 ## Model Description
 
@@ -46,6 +47,8 @@ van den Driessche P, Watmough J. Reproduction numbers and sub-threshold endemic 
 - Paige Miller <yub1@cdc.gov>
 - Scott Olesen <ulp7@cdc.gov>
 - Andy Magee <rzg0@cdc.gov>
+
+---
 
 ## General Disclaimer
 
