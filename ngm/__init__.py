@@ -1,9 +1,8 @@
-from collections import namedtuple
 from typing import Any
 
 import numpy as np
 
-DominantEigen = namedtuple("DominantEigen", ["value", "vector"])
+import ngm.linalg
 
 
 def run_ngm(
@@ -32,7 +31,7 @@ def run_ngm(
 
     # eigen analysis
     M_vax = vaccinate_M(M=M_novax, p_vax=n_vax / n, ve=ve)
-    eigen = dominant_eigen(M_vax, norm="L1")
+    eigen = ngm.linalg.dominant_eigen(M_vax)
 
     return {"M": M_vax, "Re": eigen.value, "infection_distribution": eigen.vector}
 
@@ -73,62 +72,6 @@ def vaccinate_M(M: np.ndarray, p_vax: np.ndarray, ve: float) -> np.ndarray:
     assert 0 <= ve <= 1.0
 
     return (M.T * (1 - p_vax * ve)).T
-
-
-def dominant_eigen(X: np.ndarray, norm: str = "L1") -> DominantEigen:
-    """Dominant eigenvalue and eigenvector of a matrix
-
-    Args:
-        X (np.array): matrix
-        norm (str, optional): Vector norm. `np.linalg.eig()` returns
-          a result with `"L2"` norm. Defaults to "L1", in which case
-          the sum of the vector values is 1.
-
-    Returns:
-        namedtuple: with entries `value` and `vector`
-    """
-    # do the eigenvalue analysis
-    e = np.linalg.eig(X)
-    # which eigenvalue is the dominant one?
-    i = np.argmax(np.abs(e.eigenvalues))
-
-    value = e.eigenvalues[i]
-    vector = _ensure_positive_array(e.eigenvectors[:, i])
-
-    # check for negative values
-    if not value > 0:
-        raise RuntimeError(f"Negative dominant eigenvalue: {value}")
-    if not all(vector >= 0):
-        raise RuntimeError(f"Negative dominant eigenvector values: {vector}")
-
-    # check for complex numbers
-    if not np.isreal(value):
-        raise RuntimeError("Complex eigenvalue")
-    if not all(np.isreal(vector)):
-        raise RuntimeError("Complex numbers in eigenvector")
-
-    # Ensure the value and vector are dtype float (not complex)
-    value = value.real
-    vector = vector.real
-
-    if norm == "L2":
-        pass
-    elif norm == "L1":
-        vector /= sum(vector)
-    else:
-        raise RuntimeError(f"Unknown norm '{norm}'")
-
-    return DominantEigen(value=value, vector=vector)
-
-
-def _ensure_positive_array(x: np.ndarray) -> np.ndarray:
-    """Ensure all entries of an array are positive"""
-    if all(x >= 0):
-        return x
-    elif all(x < 0):
-        return -x
-    else:
-        raise RuntimeError(f"Cannot make vector all positive: {x}")
 
 
 def distribute_vaccines(
