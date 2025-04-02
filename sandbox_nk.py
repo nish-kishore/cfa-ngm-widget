@@ -6,7 +6,6 @@ import altair as alt
 import numpy as np
 import polars as pl
 import streamlit as st
-import streamlit.delta_generator
 
 import sandbox_internal as si
 
