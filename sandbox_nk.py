@@ -2,6 +2,7 @@
 
 import importlib.metadata
 
+import yaml
 import altair as alt
 import numpy as np
 import polars as pl
@@ -36,7 +37,7 @@ M_default = (
     .select(["", *[f"from {grp}" for grp in params["Group name"]]])
 )
 
-M_df = st.data_editor(M_default, disabled=["to"], hide_index=True)
+M_df = M_default
 M_novax = M_df.drop("").to_numpy()
 G = 10
 sigdigs = 2
@@ -69,7 +70,7 @@ scenarios = [
 
 #setting to default scenario
 params = scenarios[0]
-groups = params["Group name"]
+groups = params["group_names"]
 display=[
         "infections_",
         "deaths_per_prior_infection_",
