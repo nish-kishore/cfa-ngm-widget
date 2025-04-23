@@ -36,7 +36,8 @@ groups:
       g4: 0.0
   group_3:
     group_name: "Truck Drivers"
-    pop_frac: 0.5
+    #setting to be twice the proportion of sex workers
+    pop_frac: 0.0048362
     vaccine_frac: 0.35
     prob_severe: 0.02
     infections_generated:
@@ -46,7 +47,7 @@ groups:
       g4: 0.0
   group_4:
     group_name: "Adults"
-    pop_frac: 0.5
+    pop_frac: 0.5393124
     vaccine_frac: 0.10
     prob_severe: 0.02
     infections_generated:
