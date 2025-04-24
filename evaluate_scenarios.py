@@ -79,6 +79,12 @@ for x in param_set['scenarios'].keys():
     else:
         scenario_V = V
 
+    #if no vaccination multiply VE by 0
+    if param_set['scenarios'][x]['use_vaccine']:
+        scenario_VE = VE
+    else:
+        scenario_VE = V*0
+
     scenarios[x] = {
         "scenario_title": param_set['scenarios'][x]['title'],
         "group_names": group_names,
