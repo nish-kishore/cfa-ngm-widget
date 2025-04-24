@@ -85,6 +85,17 @@ for x in param_set['scenarios'].keys():
     else:
         scenario_VE = V*0
 
+    #throw alert and adjust vaccinations if fractional dose 
+    #results in a larger supply of vaccines 
+    for i in range(len(scenario_V)):
+        if scenario_V[i] > N[i]:
+            print(f"Warning: The number of vaccines allocated to {group_names[i]} in "
+                  f"the '{param_set['scenarios'][x]['title']}' scenario is greater than "
+                  f"the population of {group_names[i]}. Please reallocate vaccines appropriately. "
+                  f"The number of vaccines allocated has been adjusted to the population size and "
+                  f"{scenario_V[i] - N[i]} doses of vaccines have been wasted")
+            scenario_V[i] = N[i]
+
     #adjust the transition matrix for behavior change
     scenario_M_novax = M_novax*param_set['scenarios'][x]['change_behavior']
 
