@@ -83,7 +83,7 @@ for x in param_set['scenarios'].keys():
     if param_set['scenarios'][x]['use_vaccine']:
         scenario_VE = VE
     else:
-        scenario_VE = V*0
+        scenario_VE = VE*0
 
     #throw alert and adjust vaccinations if fractional dose 
     #results in a larger supply of vaccines 
