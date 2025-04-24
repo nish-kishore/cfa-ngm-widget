@@ -85,12 +85,15 @@ for x in param_set['scenarios'].keys():
     else:
         scenario_VE = V*0
 
+    #adjust the transition matrix for behavior change
+    scenario_M_novax = M_novax*param_set['scenarios'][x]['change_behavior']
+
     scenarios[x] = {
         "scenario_title": param_set['scenarios'][x]['title'],
         "group_names": group_names,
         "n_total": N.sum(),
         "pop_props": N / N.sum(),
-        "M_novax": M_novax,
+        "M_novax": scenario_M_novax,
         "p_severe": p_severe,
         "n_vax": scenario_V,
         "ve": VE,
