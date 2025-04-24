@@ -19,8 +19,8 @@ pop = param_set['population_size']
 n_vacc = param_set['n_vaccines']
 
 #extract key simulation parameters
-G = 10
-sigdigs = 2
+G = param_set['generations']
+sigdigs = param_set['sigdigs']
 
 #generate parameters dataframe
 params = pl.DataFrame(
