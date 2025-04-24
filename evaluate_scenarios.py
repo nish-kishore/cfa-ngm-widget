@@ -17,6 +17,7 @@ param_set = dal.read_yaml_file(yaml_file)
 #extract key population level parameters
 pop = param_set['population_size']
 n_vacc = param_set['n_vaccines']
+n_groups = param_set['n_groups']
 
 #extract key simulation parameters
 G = param_set['generations']
@@ -59,6 +60,12 @@ N = params["Pop. size"].to_numpy()
 V = params["No. vaccines"].to_numpy()
 p_severe = params["Prob. severe"].to_numpy()
 VE = param_set['vaccine_efficacy']
+
+#check if the # of groups and the # of transitions and # of names match
+if not(len(group_names) == n_groups and M_novax.shape[0] == n_groups and M_novax.shape[1] == n_groups):
+    raise ValueError(
+        f"Number of groups ({len(group_names)}) does not match the number of transitions in the next generation matrix."
+    )
 
 #initiatlize a dictionary of scenarios to be simulated
 scenarios = {}
