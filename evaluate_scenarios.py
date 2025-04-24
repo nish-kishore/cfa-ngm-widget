@@ -72,6 +72,13 @@ scenarios = {}
 
 #loop through scenarios and extract key values for simulation
 for x in param_set['scenarios'].keys():
+
+    #if fractional dose we multiply the # of available vaccines
+    if param_set['scenarios'][x]['vacc_frac']:
+        scenario_V = V*param_set['vacc_frac_multiplier']
+    else:
+        scenario_V = V
+
     scenarios[x] = {
         "scenario_title": param_set['scenarios'][x]['title'],
         "group_names": group_names,
@@ -79,7 +86,7 @@ for x in param_set['scenarios'].keys():
         "pop_props": N / N.sum(),
         "M_novax": M_novax,
         "p_severe": p_severe,
-        "n_vax": V,
+        "n_vax": scenario_V,
         "ve": VE,
         "G": G,
     }
