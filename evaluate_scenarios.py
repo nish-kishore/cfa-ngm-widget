@@ -107,7 +107,7 @@ for x in param_set['scenarios'].keys():
         "M_novax": scenario_M_novax,
         "p_severe": p_severe,
         "n_vax": scenario_V,
-        "ve": VE,
+        "ve": scenario_VE,
         "G": G,
     }
 
