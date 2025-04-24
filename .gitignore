@@ -385,3 +385,4 @@ docs/site/
 # Posit deployment files
 manifest.json
 requirements.txt
+/scenarios
