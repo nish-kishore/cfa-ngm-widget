@@ -3,7 +3,7 @@ import utils.dal as dal
 import utils.data_munging
 import polars as pl
 import numpy as np
-import sandbox_internal as si
+import utils.simulate_scenario as si
 
 
 if len(sys.argv) > 1:
