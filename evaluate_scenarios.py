@@ -128,6 +128,11 @@ results = [df for df in results.values()]
 #concatenate list of dataframe into single dataframe
 results = pl.concat(results)
 
+#round outputs
+columns_to_round = results.columns
+columns_to_round.remove("Title")
+results = results.with_columns([pl.col(col).round(sigdigs).alias(col) for col in columns_to_round])
+
 #place title in the beginning of the dataframe
 results = results.reorder(0, "Title")
 
